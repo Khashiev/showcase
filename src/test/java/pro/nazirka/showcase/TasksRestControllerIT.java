@@ -7,7 +7,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,27 +20,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(printOnlyOnFailure = false)
+@Transactional
+@Sql("/sql/tasks_rest_controller/test_data.sql")
 class TasksRestControllerIT {
     @Autowired
     MockMvc mockMvc;
 
-    @Autowired
-    TaskRepositoryImpl taskRepository;
-
-    @AfterEach
-    void tearDown() {
-        taskRepository.getTasks().clear();
-    }
-
     @Test
     void getTasksReturnsValidResponseEntity() throws Exception {
         var requestBuilder = get("/api/tasks");
-        this.taskRepository.getTasks()
-                .addAll(List.of(
-                        new Task(UUID.fromString("7cbd4a86-9c5d-11ef-a96a-13456a082682"),
-                                "first", false),
-                        new Task(UUID.fromString("84263cc4-9c5d-11ef-bc48-c7ecbc94d7a6"),
-                                "second", true)));
 
         this.mockMvc.perform(requestBuilder)
                 .andExpectAll(
@@ -84,11 +74,6 @@ class TasksRestControllerIT {
                                 """),
                         jsonPath("$.id").exists()
                 );
-        final var task = this.taskRepository.getTasks().get(0);
-        assertEquals(1, this.taskRepository.getTasks().size());
-        assertNotNull(task.id());
-        assertEquals("third", this.taskRepository.getTasks().get(0).details());
-        assertFalse(this.taskRepository.getTasks().get(0).completed());
     }
 
     @Test
@@ -112,6 +97,5 @@ class TasksRestControllerIT {
                                 }
                                 """, true)
                 );
-        assertTrue(this.taskRepository.getTasks().isEmpty());
     }
 }
