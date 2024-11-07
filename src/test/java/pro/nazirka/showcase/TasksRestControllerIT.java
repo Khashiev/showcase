@@ -1,6 +1,5 @@
 package pro.nazirka.showcase;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,10 +10,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -28,7 +24,8 @@ class TasksRestControllerIT {
 
     @Test
     void getTasksReturnsValidResponseEntity() throws Exception {
-        var requestBuilder = get("/api/tasks");
+        var requestBuilder = get("/api/tasks")
+                .with(httpBasic("user1", "password1"));
 
         this.mockMvc.perform(requestBuilder)
                 .andExpectAll(
@@ -54,6 +51,7 @@ class TasksRestControllerIT {
     @Test
     void createTask_PayloadIsValid_ReturnsValidResponseEntity() throws Exception {
         var requestBuilder = post("/api/tasks")
+                .with(httpBasic("user2", "password2"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -79,7 +77,9 @@ class TasksRestControllerIT {
     @Test
     void createTask_PayloadIsInvalid_ReturnsValidResponseEntity() throws Exception {
         var requestBuilder = post("/api/tasks")
+                .with(httpBasic("user1", "password1"))
                 .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.ACCEPT_LANGUAGE, "en")
                 .content("""
                         {
                           "details": null
