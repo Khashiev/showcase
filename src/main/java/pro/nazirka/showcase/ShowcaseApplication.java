@@ -19,6 +19,7 @@ public class ShowcaseApplication {
                 .csrf().disable()
                 .httpBasic().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .authorizeHttpRequests().anyRequest().authenticated().and()
                 .build();
     }
 }
